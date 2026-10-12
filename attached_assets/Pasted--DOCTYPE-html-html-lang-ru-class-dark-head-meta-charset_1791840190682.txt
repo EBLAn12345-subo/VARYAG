@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VARYAG • Minimalist AI Concierge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050505',
+                        cardBg: 'rgba(255, 255, 255, 0.02)',
+                        cardBorder: 'rgba(255, 255, 255, 0.08)',
+                        cardLightBg: 'rgba(0, 0, 0, 0.015)',
+                        cardLightBorder: 'rgba(0, 0, 0, 0.08)',
+                        accentBlue: '#007AFF'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #EDEDED;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .light body {
+            background-color: #F8F9FA;
+            color: #111111;
+        }
+
+        /* Minimalist glass lines */
+        .minimal-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        .light .minimal-card {
+            background: rgba(0, 0, 0, 0.015);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .minimal-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+        }
+        .light .minimal-btn {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .minimal-btn:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .light .minimal-btn:hover {
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Bright Blue Animated Toggle Switch */
+        .toggle-checkbox {
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .light .toggle-checkbox {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        .toggle-checkbox:checked {
+            background-color: #007AFF;
+        }
+        .toggle-checkbox::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .toggle-checkbox:checked::before {
+            transform: translateX(20px);
+        }
+
+        /* 1-second Spin strictly for Shazam Record */
+        @keyframes oneSecSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-once-spin { animation: oneSecSpin 1s linear 1; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 9999px; }
+    </style>
+</head>
+<body class="min-h-screen pb-32">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl dark:bg-[#050505]/80 bg-[#F8F9FA]/80 border-b dark:border-white/10 border-black/10 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3.5">
+            <!-- Custom Avatar Matching User Provided Image -->
+            <div class="w-10 h-10 rounded-full border dark:border-white/20 border-black/20 dark:bg-black bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                <svg viewBox="0 0 100 100" class="w-8 h-8 dark:text-white text-black" fill="none" stroke="currentColor" stroke-width="3.5">
+                    <path d="M10 50 Q 25 30, 40 50 T 70 50 T 100 50" stroke-linecap="round" />
+                    <path d="M10 50 Q 25 20, 45 50 T 75 50 T 95 50" stroke-linecap="round" opacity="0.6" />
+                    <path d="M10 50 Q 30 70, 50 50 T 80 50 T 90 50" stroke-linecap="round" opacity="0.8" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-semibold text-sm tracking-wide dark:text-white text-black">VARYAG</h1>
+                <p class="text-[11px] opacity-50">AI Core & Concierge</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleTheme()" class="w-9 h-9 minimal-btn flex items-center justify-center text-xs" title="Сменить тему">
+                <i id="theme-icon" class="fa-solid fa-moon"></i>
+            </button>
+            <button onclick="showToast('Система синхронизирована')" class="w-9 h-9 minimal-btn flex items-center justify-center text-xs" title="Синхронизация">
+                <i class="fa-solid fa-rotate text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 pt-6 space-y-5">
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="space-y-4">
+            <section class="minimal-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs uppercase tracking-wider opacity-50 font-medium">Статус ядра</span>
+                    <span class="text-xs px-2.5 py-1 rounded-full border dark:border-white/20 border-black/20 flex items-center space-x-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span class="text-[11px] opacity-80">Активен</span>
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="minimal-card p-4 flex flex-col justify-center">
+                        <div class="text-[10px] opacity-50 mb-1">Модель</div>
+                        <div class="text-xs font-medium">Gemini 2.5 Flash</div>
+                    </div>
+                    <div class="minimal-card p-4 flex flex-col justify-center">
+                        <div class="text-[10px] opacity-50 mb-1">Связь</div>
+                        <div class="text-xs font-medium text-emerald-500">Защищена</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="minimal-card p-6">
+                <div class="text-xs uppercase tracking-wider opacity-50 font-medium mb-4">Режимы VARYAG</div>
+                <div class="space-y-3">
+                    <div class="minimal-card p-4 flex items-center justify-between cursor-pointer" onclick="toggleModeCheckbox('chameleon')">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-masks-theater text-sm opacity-70"></i>
+                            <div>
+                                <div class="text-xs font-medium">Хамелеон</div>
+                                <div class="text-[10px] opacity-50">Копирование стиля в чатах</div>
+                            </div>
+                        </div>
+                        <input type="checkbox" id="mode-chameleon" checked onclick="event.stopPropagation()" class="toggle-checkbox">
+                    </div>
+
+                    <div class="minimal-card p-4 flex items-center justify-between cursor-pointer" onclick="toggleModeCheckbox('concierge')">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-cloud-sun text-sm opacity-70"></i>
+                            <div>
+                                <div class="text-xs font-medium">Консьерж</div>
+                                <div class="text-[10px] opacity-50">Погода и советы</div>
+                            </div>
+                        </div>
+                        <input type="checkbox" id="mode-concierge" checked onclick="event.stopPropagation()" class="toggle-checkbox">
+                    </div>
+
+                    <div class="minimal-card p-4 flex items-center justify-between cursor-pointer" onclick="toggleModeCheckbox('stealth')">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-user-secret text-sm opacity-70"></i>
+                            <div>
+                                <div class="text-xs font-medium">Stealth-режим</div>
+                                <div class="text-[10px] opacity-50">Архив стертых сообщений</div>
+                            </div>
+                        </div>
+                        <input type="checkbox" id="mode-stealth" checked onclick="event.stopPropagation()" class="toggle-checkbox">
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: MUSIC & SHAZAM -->
+        <div id="tab-music" class="space-y-4 hidden">
+            <section class="minimal-card p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wider opacity-50 font-medium">Радар эфира (Shazam)</span>
+                    <span id="shazam-badge" class="text-[11px] opacity-60">Готов</span>
+                </div>
+                <div class="minimal-card p-4 flex items-center space-x-4">
+                    <div id="album-disc" class="w-12 h-12 rounded-full border dark:border-white/20 border-black/20 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-compact-disc"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div id="track-title" class="text-xs font-medium truncate">Ожидание сигнала...</div>
+                        <div id="track-artist" class="text-[11px] opacity-50 truncate">Нажмите кнопку ниже</div>
+                    </div>
+                </div>
+                <button onclick="triggerShazam()" class="w-full py-3.5 minimal-btn text-xs font-medium flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Распознать трек</span>
+                </button>
+            </section>
+
+            <section class="minimal-card p-6 space-y-3">
+                <span class="text-xs uppercase tracking-wider opacity-50 font-medium">Стриминги</span>
+                
+                <div class="minimal-card p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full border dark:border-white/20 border-black/20 flex items-center justify-center text-xs font-bold">Я</div>
+                        <div>
+                            <div class="text-xs font-medium">Яндекс Музыка</div>
+                            <div id="yandex-status" class="text-[10px] opacity-50">Не подключено</div>
+                        </div>
+                    </div>
+                    <button onclick="connectStreaming('yandex')" id="yandex-btn" class="px-3.5 py-1.5 minimal-btn text-[11px]">Подключить</button>
+                </div>
+
+                <div class="minimal-card p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full border dark:border-white/20 border-black/20 flex items-center justify-center text-xs font-bold">VK</div>
+                        <div>
+                            <div class="text-xs font-medium">VK Музыка</div>
+                            <div id="vk-status" class="text-[10px] opacity-50">Не подключено</div>
+                        </div>
+                    </div>
+                    <button onclick="connectStreaming('vk')" id="vk-btn" class="px-3.5 py-1.5 minimal-btn text-[11px]">Подключить</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 3: CONCIERGE -->
+        <div id="tab-concierge" class="space-y-4 hidden">
+            <section class="minimal-card p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wider opacity-50 font-medium">Погода и консьерж</span>
+                    <button onclick="refreshWeather()" class="w-7 h-7 minimal-btn flex items-center justify-center text-[10px]">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+                <div class="minimal-card p-4 flex items-center space-x-4">
+                    <div class="text-2xl">
+                        <i id="weather-icon" class="fa-solid fa-cloud-rain"></i>
+                    </div>
+                    <div>
+                        <div id="weather-text" class="text-xs font-medium">+14°C, Дождь</div>
+                        <div class="text-[10px] opacity-50">Амстердам • VARYAG Network</div>
+                    </div>
+                </div>
+                <div id="weather-advice" class="minimal-card p-4 text-xs leading-relaxed opacity-90">
+                    Совет: После 15:00 ожидаются осадки, рекомендуется захватить зонт.
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 4: DELETED LOGS ARCHIVE (NOT DELETED, FULL VIEW) -->
+        <div id="tab-logs" class="space-y-4 hidden">
+            <section class="minimal-card p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wider opacity-50 font-medium">Хранилище перехватов</span>
+                    <span id="log-counter" class="text-[10px] opacity-50">2 записи</span>
+                </div>
+                <p class="text-[11px] opacity-60">Сообщения сохраняются без стирания. Нажмите на запись, чтобы изучить полностью.</p>
+                
+                <div id="logs-container" class="space-y-3">
+                    <div class="minimal-card p-4 text-xs cursor-pointer hover:border-white/30 transition-all" onclick="openLogModal('@alex_ivanov', '19:42', '«Слушай, я передумал отправлять те файлы... Лучше созвонимся завтра утром в 10:00 и обсудим всё лично.»')">
+                        <div class="flex justify-between items-center mb-1 opacity-70">
+                            <span class="font-medium">@alex_ivanov</span>
+                            <span class="text-[10px]">19:42</span>
+                        </div>
+                        <div class="opacity-90 truncate">«Слушай, я передумал отправлять те файлы...»</div>
+                    </div>
+
+                    <div class="minimal-card p-4 text-xs cursor-pointer hover:border-white/30 transition-all" onclick="openLogModal('Канал \"Инсайды\"', '17:15', '[Удаленное фото с документом] Конфиденциальный отчет по проекту VARYAG за Q3. Подпись: Проверить до конца недели.')">
+                        <div class="flex justify-between items-center mb-1 opacity-70">
+                            <span class="font-medium">Канал "Инсайды"</span>
+                            <span class="text-[10px]">17:15</span>
+                        </div>
+                        <div class="opacity-90 truncate">[Удаленное фото с документом]</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal for Full Log View -->
+    <div id="log-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="minimal-card max-w-sm w-full p-6 space-y-4 dark:bg-[#111] bg-white shadow-2xl">
+            <div class="flex justify-between items-center border-b dark:border-white/10 border-black/10 pb-3">
+                <h3 id="modal-sender" class="text-xs font-semibold uppercase tracking-wider">Отправитель</h3>
+                <span id="modal-time" class="text-[10px] opacity-50">Время</span>
+            </div>
+            <div id="modal-content" class="text-xs leading-relaxed py-2 opacity-90 select-all">
+                Полный текст сообщения...
+            </div>
+            <button onclick="closeLogModal()" class="w-full py-2.5 minimal-btn text-xs font-medium">
+                Закрыть
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-4 left-4 right-4 max-w-md mx-auto minimal-card p-2 flex justify-around items-center z-40 backdrop-blur-xl">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex-1 py-2.5 rounded-xl text-xs font-medium border border-transparent dark:bg-white/10 bg-black/10 transition-all flex flex-col items-center space-y-1">
+            <i class="fa-solid fa-house"></i>
+            <span class="text-[10px]">Пульт</span>
+        </button>
+        <button onclick="switchTab('music')" id="nav-music" class="flex-1 py-2.5 rounded-xl text-xs font-medium opacity-50 hover:opacity-100 transition-all flex flex-col items-center space-y-1">
+            <i class="fa-solid fa-headphones"></i>
+            <span class="text-[10px]">Музыка</span>
+        </button>
+        <button onclick="switchTab('concierge')" id="nav-concierge" class="flex-1 py-2.5 rounded-xl text-xs font-medium opacity-50 hover:opacity-100 transition-all flex flex-col items-center space-y-1">
+            <i class="fa-solid fa-compass"></i>
+            <span class="text-[10px]">Консьерж</span>
+        </button>
+        <button onclick="switchTab('logs')" id="nav-logs" class="flex-1 py-2.5 rounded-xl text-xs font-medium opacity-50 hover:opacity-100 transition-all flex flex-col items-center space-y-1">
+            <i class="fa-solid fa-shield-cat"></i>
+            <span class="text-[10px]">Архив</span>
+        </button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 minimal-card px-5 py-3 text-xs opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg">
+        <span id="toast-msg">Успешно</span>
+    </div>
+
+    <script>
+        let isRain = true;
+        function refreshWeather() {
+            const icon = document.getElementById('weather-icon');
+            const text = document.getElementById('weather-text');
+            const advice = document.getElementById('weather-advice');
+            if (isRain) {
+                icon.className = "fa-solid fa-sun";
+                text.innerText = "+22°C, Ясно";
+                advice.innerText = "Совет: Отличная погода для прогулки в парке.";
+                isRain = false;
+            } else {
+                icon.className = "fa-solid fa-cloud-rain";
+                text.innerText = "+14°C, Дождь";
+                advice.innerText = "Совет: После 15:00 ожидаются осадки, рекомендуется захватить зонт.";
+                isRain = true;
+            }
+            showToast('Погода обновлена');
+        }
+
+        function triggerShazam() {
+            const badge = document.getElementById('shazam-badge');
+            const title = document.getElementById('track-title');
+            const artist = document.getElementById('track-artist');
+            const disc = document.getElementById('album-disc');
+
+            badge.innerText = 'Слушаем...';
+            disc.classList.add('animate-once-spin');
+            setTimeout(() => {
+                disc.classList.remove('animate-once-spin');
+            }, 1000);
+
+            setTimeout(() => {
+                title.innerText = 'Midnight City (VARYAG Mix)';
+                artist.innerText = 'M83 • Распознано Shazam';
+                badge.innerText = 'Найдено';
+                showToast('Трек добавлен в плейлист');
+            }, 1500);
+        }
+
+        function connectStreaming(service) {
+            const status = document.getElementById(`${service}-status`);
+            const btn = document.getElementById(`${service}-btn`);
+            status.innerText = 'Подключено (@user)';
+            status.className = 'text-[10px] text-emerald-500 font-medium';
+            btn.innerText = 'Отвязать';
+            btn.onclick = () => disconnectStreaming(service);
+            showToast('Аккаунт успешно подключен');
+        }
+
+        function disconnectStreaming(service) {
+            const status = document.getElementById(`${service}-status`);
+            const btn = document.getElementById(`${service}-btn`);
+            status.innerText = 'Не подключено';
+            status.className = 'text-[10px] opacity-50';
+            btn.innerText = 'Подключить';
+            btn.onclick = () => connectStreaming(service);
+            showToast('Аккаунт отвязан');
+        }
+
+        function openLogModal(sender, time, text) {
+            document.getElementById('modal-sender').innerText = sender;
+            document.getElementById('modal-time').innerText = time;
+            document.getElementById('modal-content').innerText = text;
+            document.getElementById('log-modal').classList.remove('hidden');
+        }
+
+        function closeLogModal() {
+            document.getElementById('log-modal').classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                icon.className = 'fa-solid fa-sun';
+                showToast('Светлая тема');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-moon';
+                showToast('Темная тема');
+            }
+        }
+
+        function switchTab(tab) {
+            ['dashboard', 'music', 'concierge', 'logs'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`nav-${t}`);
+                btn.classList.remove('dark:bg-white/10', 'bg-black/10');
+                btn.classList.add('opacity-50');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tab}`);
+            activeBtn.classList.remove('opacity-50');
+            activeBtn.classList.add('dark:bg-white/10', 'bg-black/10');
+        }
+
+        function toggleModeCheckbox(mode) {
+            const checkbox = document.getElementById(`mode-${mode}`);
+            checkbox.checked = !checkbox.checked;
+            showToast(`Режим "${mode}" переключен`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
