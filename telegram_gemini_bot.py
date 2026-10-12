@@ -4,6 +4,7 @@ import logging
 from google import genai
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,11 +21,31 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    """Приветственное сообщение при старте бота"""
-    await message.answer(
-        "Привет! Я VARYAG — твой личный ИИ-ассистент на базе Gemini. "
-        "Напиши мне, и я постараюсь помочь!"
+    """Приветственное сообщение при старте бота от VARYAG"""
+    welcome_text = (
+        "Привет! Я **VARYAG** — твой личный ИИ-ассистент.\n\n"
+        "Мой потенциал:\n"
+        "• **Память на удаленки:** перехвачу и сохраню то, что собеседник стер из чата.\n"
+        "• **Адаптивный автоответчик:** подстроюсь под твой стиль общения.\n"
+        "• **Музыкальный центр:** найду треки, распознаю аудио и помогу с плейлистами.\n"
+        "• **Умный консьерж:** подскажу погоду с человеческим советом и выжму суть из ссылок.\n"
+        "• **Mini App управление:** вся панель настроек прямо в Telegram!\n\n"
+        "Напиши мне что-нибудь или открой панель управления ниже!"
     )
+    
+    # Создаем кнопку для открытия Mini App (пока используем заглушку на сайт-визитку или пустой интерфейс)
+    web_app_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🎛️ Открыть VARYAG Mini App",
+                    web_app=WebAppInfo(url="https://example.com") # Позже заменим на твой хостинг Mini App
+                )
+            ]
+        ]
+    )
+    
+    await message.answer(welcome_text, reply_markup=web_app_kb, parse_mode="Markdown")
 
 @dp.message()
 async def handle_all_messages(message: types.Message):
@@ -46,7 +67,7 @@ async def handle_all_messages(message: types.Message):
         await message.answer("Ой, у меня небольшая заминка с ИИ-мозгами. Попробуй еще раз!")
 
 async def main():
-    logging.info("Бот запущен и готов к работе...")
+    logging.info("VARYAG запущен и готов к работе...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
