@@ -4,7 +4,6 @@ import logging
 from google import genai
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,22 +29,10 @@ async def cmd_start(message: types.Message):
         "• **Музыкальный центр:** найду треки, распознаю аудио и помогу с плейлистами.\n"
         "• **Умный консьерж:** подскажу погоду с человеческим советом и выжму суть из ссылок.\n"
         "• **Mini App управление:** вся панель настроек прямо в Telegram!\n\n"
-        "Напиши мне что-нибудь или открой панель управления ниже!"
+        "Напиши мне что-нибудь, и мы начнём!"
     )
-    
-    # Создаем кнопку для открытия Mini App (пока используем заглушку на сайт-визитку или пустой интерфейс)
-    web_app_kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🎛️ Открыть VARYAG Mini App",
-                    web_app=WebAppInfo(url="https://example.com") # Позже заменим на твой хостинг Mini App
-                )
-            ]
-        ]
-    )
-    
-    await message.answer(welcome_text, reply_markup=web_app_kb, parse_mode="Markdown")
+
+    await message.answer(welcome_text, parse_mode="Markdown")
 
 @dp.message()
 async def handle_all_messages(message: types.Message):
